@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { EmptyState } from '../components/EmptyState';
 
 export const MyWalletScreen = () => {
   const { theme } = useTheme();
@@ -23,18 +24,6 @@ export const MyWalletScreen = () => {
         {/* Connected Cards */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Connected Cards</Text>
-          <View style={styles.cardItem}>
-            <View style={styles.cardHeader}>
-              <Icon name="card" size={28} color={theme.colors.primary} />
-              <Text style={styles.cardBrand}>Visa</Text>
-            </View>
-            <Text style={styles.cardNumber}>**** **** **** 4242</Text>
-            <View style={styles.cardFooter}>
-              <Text style={styles.cardBalance}>₹8,450.00</Text>
-              <Text style={styles.cardExpiry}>12/28</Text>
-            </View>
-          </View>
-          
           <TouchableOpacity style={styles.addCardBtn}>
             <Icon name="add" size={20} color={theme.colors.primary} />
             <Text style={styles.addCardText}>Add New Card</Text>
@@ -44,21 +33,11 @@ export const MyWalletScreen = () => {
         {/* Other Wallets */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Accounts</Text>
-          {[
-            { id: 1, name: 'Main Bank Account', balance: '₹12,450.00', icon: 'business-outline' },
-            { id: 2, name: 'Cash', balance: '₹450.00', icon: 'cash-outline' },
-            { id: 3, name: 'Savings', balance: '₹35,000.00', icon: 'safe-outline' },
-          ].map(acc => (
-            <View key={acc.id} style={styles.accountRow}>
-              <View style={styles.accountIconBox}>
-                <Icon name={acc.icon} size={20} color={theme.colors.textSecondary} />
-              </View>
-              <View style={styles.accountInfo}>
-                <Text style={styles.accountName}>{acc.name}</Text>
-              </View>
-              <Text style={styles.accountBalance}>{acc.balance}</Text>
-            </View>
-          ))}
+          <EmptyState 
+            icon="wallet-outline" 
+            title="No Accounts" 
+            message="You haven't linked any bank accounts or wallets yet." 
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

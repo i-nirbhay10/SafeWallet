@@ -1,14 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { logout } from '../store/slices/authSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 export const ProfileScreen = () => {
   const { theme, isDark, toggleTheme } = useTheme();
   const styles = getStyles(theme);
   const navigation = useNavigation<any>();
+  const dispatch = useDispatch();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -52,7 +55,7 @@ export const ProfileScreen = () => {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={() => dispatch(logout())}>
           <Icon name="log-out-outline" size={20} color={theme.colors.danger} />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>

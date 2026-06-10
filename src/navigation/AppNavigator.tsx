@@ -23,6 +23,7 @@ const HomeStackScreen = () => {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="Transactions" component={TransactionsScreen} />
+      <Stack.Screen name="EditTransaction" component={AddTransactionScreen} />
     </Stack.Navigator>
   );
 };

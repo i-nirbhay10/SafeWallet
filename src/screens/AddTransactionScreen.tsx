@@ -3,23 +3,67 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingVi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { addTransaction, updateTransaction, Transaction } from '../store/slices/transactionSlice';
 
 export const AddTransactionScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute<any>();
   const { theme } = useTheme();
   const styles = getStyles(theme);
-  
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('');
-  const [note, setNote] = useState('');
-  const [type, setType] = useState('expense'); // 'income' or 'expense'
+  const dispatch = useDispatch();
 
-  // We could also use navigation.setOptions in a useEffect to add a save button to the header if using React Navigation headers.
-  // But here we can build a custom header to ensure safe area and custom styling.
+  const editItem: Transaction | undefined = route.params?.editItem;
+  
+  const [amount, setAmount] = useState(editItem ? editItem.amount.toString() : '');
+  const [category, setCategory] = useState(editItem ? editItem.category : '');
+  const [note, setNote] = useState(editItem?.note ? editItem.note : '');
+  const [type, setType] = useState<'income' | 'expense'>(editItem ? editItem.type : 'expense');
+  const [selectedIcon, setSelectedIcon] = useState(editItem?.icon ? editItem.icon : '');
+
+  const expenseCategories = [
+    { name: 'Food & Dining', icon: 'restaurant' },
+    { name: 'Transport', icon: 'car' },
+    { name: 'Shopping', icon: 'bag-handle' },
+    { name: 'Bills', icon: 'receipt' },
+    { name: 'Entertainment', icon: 'game-controller' },
+  ];
+
+  const incomeCategories = [
+    { name: 'Salary', icon: 'cash' },
+    { name: 'Freelance', icon: 'briefcase' },
+    { name: 'Gift', icon: 'gift' },
+    { name: 'Investment', icon: 'trending-up' },
+    { name: 'Refund', icon: 'refresh-circle' },
+  ];
+
+  const currentCategories = type === 'expense' ? expenseCategories : incomeCategories;
+
+  const handleSelectCategory = (name: string, icon: string) => {
+    setCategory(name);
+    setSelectedIcon(icon);
+  };
 
   const handleSave = () => {
-    // Save logic here
+    if (!amount || !category) return;
+    const newTransaction: Transaction = {
+      id: editItem ? editItem.id : Math.random().toString(),
+      title: category,
+      amount: parseFloat(amount),
+      type,
+      date: editItem ? editItem.date : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      category,
+      note,
+      icon: selectedIcon || (type === 'income' ? 'cash' : 'cart'),
+      timestamp: editItem?.timestamp ? editItem.timestamp : Date.now(),
+    };
+
+    if (editItem) {
+      dispatch(updateTransaction(newTransaction));
+    } else {
+      dispatch(addTransaction(newTransaction));
+    }
     navigation.goBack();
   };
 
@@ -34,7 +78,7 @@ export const AddTransactionScreen = () => {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
             <Icon name="close" size={28} color={theme.colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>New Transaction</Text>
+          <Text style={styles.headerTitle}>{editItem ? 'Edit Transaction' : 'New Transaction'}</Text>
           <TouchableOpacity onPress={handleSave} style={styles.iconButton}>
             <Icon name="checkmark" size={28} color={theme.colors.primary} />
           </TouchableOpacity>
@@ -79,10 +123,33 @@ export const AddTransactionScreen = () => {
             <TextInput
               style={styles.input}
               value={category}
-              onChangeText={setCategory}
+              onChangeText={(text) => {
+                setCategory(text);
+                setSelectedIcon(''); // Reset icon if custom text
+              }}
               placeholder="e.g. Groceries, Salary"
               placeholderTextColor={theme.colors.textSecondary}
             />
+            
+            {/* Quick Picks */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickPicksContainer}>
+              {currentCategories.map((cat, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.quickPickChip,
+                    category === cat.name && { backgroundColor: theme.colors.primary + '30', borderColor: theme.colors.primary }
+                  ]}
+                  onPress={() => handleSelectCategory(cat.name, cat.icon)}
+                >
+                  <Icon name={cat.icon} size={16} color={category === cat.name ? theme.colors.primary : theme.colors.textSecondary} style={{ marginRight: 4 }} />
+                  <Text style={[
+                    styles.quickPickText,
+                    category === cat.name && { color: theme.colors.primary, fontWeight: 'bold' }
+                  ]}>{cat.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
 
           {/* Note Input */}
@@ -198,5 +265,24 @@ const getStyles = (theme: any) => StyleSheet.create({
   noteInput: {
     minHeight: 100,
     textAlignVertical: 'top',
+  },
+  quickPicksContainer: {
+    flexDirection: 'row',
+    marginTop: theme.spacing.m,
+  },
+  quickPickChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: theme.spacing.s,
+    borderRadius: theme.borderRadius.xl,
+    marginRight: theme.spacing.s,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  quickPickText: {
+    color: theme.colors.textSecondary,
+    fontSize: 14,
   },
 });

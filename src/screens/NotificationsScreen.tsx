@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { EmptyState } from '../components/EmptyState';
 
 export const NotificationsScreen = () => {
   const { theme } = useTheme();
@@ -20,23 +21,11 @@ export const NotificationsScreen = () => {
         <View style={{ width: 24 }} />
       </View>
       <ScrollView style={styles.content}>
-        {[
-          { id: 1, title: 'Salary Received', desc: 'Your salary of ₹3,200.00 has been credited.', time: '2 hours ago', icon: 'cash', color: theme.colors.secondary },
-          { id: 2, title: 'Subscription Renewed', desc: 'Netflix subscription (₹15.99) was auto-renewed.', time: 'Yesterday', icon: 'film', color: theme.colors.danger },
-          { id: 3, title: 'Budget Alert', desc: 'You have used 80% of your Food & Dining budget.', time: '2 days ago', icon: 'warning', color: '#F59E0B' },
-          { id: 4, title: 'New Login', desc: 'New login detected from a Mac device.', time: '3 days ago', icon: 'laptop', color: theme.colors.primary },
-        ].map(notif => (
-          <View key={notif.id} style={styles.notifCard}>
-            <View style={[styles.iconBox, { backgroundColor: notif.color + '20' }]}>
-              <Icon name={notif.icon} size={24} color={notif.color} />
-            </View>
-            <View style={styles.notifInfo}>
-              <Text style={styles.notifTitle}>{notif.title}</Text>
-              <Text style={styles.notifDesc}>{notif.desc}</Text>
-              <Text style={styles.notifTime}>{notif.time}</Text>
-            </View>
-          </View>
-        ))}
+        <EmptyState 
+          icon="notifications-off-outline" 
+          title="All Caught Up!" 
+          message="You have no new notifications at the moment. Check back later." 
+        />
       </ScrollView>
     </SafeAreaView>
   );

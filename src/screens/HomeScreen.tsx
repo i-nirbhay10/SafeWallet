@@ -4,11 +4,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { EmptyState } from '../components/EmptyState';
 
 export const HomeScreen = () => {
   const navigation = useNavigation();
   const { theme } = useTheme();
   const styles = getStyles(theme);
+  
+  const { balance, totalIncome, totalExpense, transactions } = useSelector((state: RootState) => state.transactions);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -27,20 +32,20 @@ export const HomeScreen = () => {
         {/* Total Balance Card */}
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Total Balance</Text>
-          <Text style={styles.balanceAmount}>₹12,450.00</Text>
+          <Text style={styles.balanceAmount}>₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
           <View style={styles.balanceRow}>
             <View style={styles.incomeBox}>
               <Icon name="arrow-down-outline" size={20} color={theme.colors.secondary} />
               <View style={styles.incomeTextCol}>
                 <Text style={styles.incomeLabel}>Income</Text>
-                <Text style={styles.incomeValue}>₹4,250</Text>
+                <Text style={styles.incomeValue}>₹{totalIncome.toLocaleString('en-IN')}</Text>
               </View>
             </View>
             <View style={styles.expenseBox}>
               <Icon name="arrow-up-outline" size={20} color={theme.colors.danger} />
               <View style={styles.incomeTextCol}>
                 <Text style={styles.incomeLabel}>Expenses</Text>
-                <Text style={styles.expenseValue}>₹1,840</Text>
+                <Text style={styles.expenseValue}>₹{totalExpense.toLocaleString('en-IN')}</Text>
               </View>
             </View>
           </View>
@@ -54,25 +59,28 @@ export const HomeScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Dummy Transactions List */}
-        {[
-          { id: 1, title: 'Netflix Subscription', date: 'Today', amount: '-₹15.99', type: 'expense', icon: 'film' },
-          { id: 2, title: 'Salary', date: 'Yesterday', amount: '+₹3,200.00', type: 'income', icon: 'cash' },
-          { id: 3, title: 'Grocery Store', date: 'Oct 12', amount: '-₹124.50', type: 'expense', icon: 'cart' },
-        ].map((item) => (
+        {/* Transactions List */}
+        {transactions.slice(0, 3).map((item) => (
           <View key={item.id} style={styles.transactionItem}>
             <View style={styles.transactionIconBox}>
-              <Icon name={item.icon} size={24} color={item.type === 'income' ? theme.colors.secondary : theme.colors.danger} />
+              <Icon name={item.icon || 'cash'} size={24} color={item.type === 'income' ? theme.colors.secondary : theme.colors.danger} />
             </View>
             <View style={styles.transactionDetails}>
               <Text style={styles.transactionTitle}>{item.title}</Text>
               <Text style={styles.transactionDate}>{item.date}</Text>
             </View>
             <Text style={[styles.transactionAmount, { color: item.type === 'income' ? theme.colors.secondary : theme.colors.text }]}>
-              {item.amount}
+              {item.type === 'income' ? '+' : '-'}₹{item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </Text>
           </View>
         ))}
+        {transactions.length === 0 && (
+          <EmptyState 
+            icon="receipt-outline" 
+            title="No Transactions" 
+            message="You haven't made any transactions yet. Tap the Add button to get started!" 
+          />
+        )}
 
       </ScrollView>
     </SafeAreaView>
