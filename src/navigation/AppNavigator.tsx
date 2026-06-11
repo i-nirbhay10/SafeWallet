@@ -20,6 +20,13 @@ import { SecurityScreen } from '../screens/SecurityScreen';
 import { HelpSupportScreen } from '../screens/HelpSupportScreen';
 import { useTheme } from '../theme/ThemeContext';
 
+import { SendScreen } from '../screens/SendScreen';
+import { ReceiveScreen } from '../screens/ReceiveScreen';
+import { TopUpScreen } from '../screens/TopUpScreen';
+import { MoreFeaturesScreen } from '../screens/MoreFeaturesScreen';
+import { MiniGameScreen } from '../screens/MiniGameScreen';
+import { MemoryGameScreen } from '../screens/MemoryGameScreen';
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +36,12 @@ const HomeStackScreen = () => {
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="Transactions" component={TransactionsScreen} />
       <Stack.Screen name="EditTransaction" component={AddTransactionScreen} />
+      <Stack.Screen name="Send" component={SendScreen} />
+      <Stack.Screen name="Receive" component={ReceiveScreen} />
+      <Stack.Screen name="TopUp" component={TopUpScreen} />
+      <Stack.Screen name="MoreFeatures" component={MoreFeaturesScreen} />
+      <Stack.Screen name="MiniGame" component={MiniGameScreen} />
+      <Stack.Screen name="MemoryGame" component={MemoryGameScreen} />
     </Stack.Navigator>
   );
 };

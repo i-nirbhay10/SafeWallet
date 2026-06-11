@@ -98,28 +98,36 @@ export const InsightsScreen = () => {
         {/* Dummy Chart Area */}
         <View style={styles.chartContainer}>
           <Text style={styles.sectionTitle}>Spending Overview</Text>
-          <BarChart
-            data={chartData}
-            width={screenWidth - 64}
-            height={220}
-            yAxisLabel="₹"
-            yAxisSuffix=""
-            chartConfig={{
-              backgroundColor: theme.colors.surface,
-              backgroundGradientFrom: theme.colors.surface,
-              backgroundGradientTo: theme.colors.surface,
-              decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(99, 102, 241, ${opacity})`,
-              labelColor: (opacity = 1) => theme.colors.textSecondary,
-              style: {
+          {totalExpense > 0 ? (
+            <BarChart
+              data={chartData}
+              width={screenWidth - 64}
+              height={220}
+              yAxisLabel="₹"
+              yAxisSuffix=""
+              chartConfig={{
+                backgroundColor: theme.colors.surface,
+                backgroundGradientFrom: theme.colors.surface,
+                backgroundGradientTo: theme.colors.surface,
+                decimalPlaces: 0,
+                color: (opacity = 1) => `rgba(99, 102, 241, ${opacity})`,
+                labelColor: (opacity = 1) => theme.colors.textSecondary,
+                style: {
+                  borderRadius: 16,
+                },
+              }}
+              style={{
+                marginVertical: 8,
                 borderRadius: 16,
-              },
-            }}
-            style={{
-              marginVertical: 8,
-              borderRadius: 16,
-            }}
-          />
+              }}
+            />
+          ) : (
+            <EmptyState 
+              icon="bar-chart-outline" 
+              title="No Chart Data" 
+              message="Add some expenses to generate your weekly spending chart." 
+            />
+          )}
         </View>
 
         {/* Categories Breakdown */}

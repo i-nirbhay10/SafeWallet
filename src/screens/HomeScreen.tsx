@@ -7,13 +7,23 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { EmptyState } from '../components/EmptyState';
+import { QuickActions } from '../components/QuickActions';
+import { AlertBanner } from '../components/AlertBanner';
 
 export const HomeScreen = () => {
   const navigation = useNavigation();
   const { theme } = useTheme();
   const styles = getStyles(theme);
-  
+
   const { balance, totalIncome, totalExpense, transactions } = useSelector((state: RootState) => state.transactions);
+  const userName = useSelector((state: RootState) => state.auth.userName);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning,';
+    if (hour < 18) return 'Good afternoon,';
+    return 'Good evening,';
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -21,8 +31,8 @@ export const HomeScreen = () => {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Good morning,</Text>
-            <Text style={styles.userName}>Nirbhay</Text>
+            <Text style={styles.greeting}>{getGreeting()}</Text>
+            <Text style={styles.userName}>{userName}</Text>
           </View>
           <TouchableOpacity style={styles.profileIcon} onPress={() => navigation.navigate('Profile' as never)}>
             <Icon name="person" size={24} color={theme.colors.text} />
@@ -51,6 +61,15 @@ export const HomeScreen = () => {
           </View>
         </View>
 
+        {/* Quick Actions (Hidden for now) */}
+        <QuickActions />
+
+        {/* Actionable Alert (Hidden for now) */}
+        {/* <AlertBanner 
+          title="Approaching limit" 
+          description="You've spent 80% of your Food budget." 
+        /> */}
+
         {/* Recent Transactions */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent Transactions</Text>
@@ -75,13 +94,37 @@ export const HomeScreen = () => {
           </View>
         ))}
         {transactions.length === 0 && (
-          <EmptyState 
-            icon="receipt-outline" 
-            title="No Transactions" 
-            message="You haven't made any transactions yet. Tap the Add button to get started!" 
+          <EmptyState
+            icon="receipt-outline"
+            title="No Transactions"
+            message="You haven't made any transactions yet. Tap the Add button to get started!"
           />
         )}
 
+        {/* Footer Markings */}
+        <View style={styles.footer}>
+          <View style={styles.hashtagContainer}>
+            <Text style={[styles.largeHashtag, { color: theme.colors.primary, opacity: 0.8 }]}>#</Text>
+            <Text style={styles.largeHashtag}>goSafeWallet</Text>
+          </View>
+
+          <View style={styles.footerContent}>
+            <View style={styles.footerRow}>
+              <Text style={styles.footerEmoji}>🇮🇳</Text>
+              <Text style={styles.footerSubText}>Made for India</Text>
+            </View>
+            <View style={styles.footerRow}>
+              <Text style={styles.footerEmoji}>❤️</Text>
+              <Text style={styles.footerSubText}>Crafted in Patna</Text>
+            </View>
+            <View style={styles.footerRow}>
+              <Text style={styles.footerEmoji}>🛡️</Text>
+              <Text style={styles.footerSubText}>Bank-grade Security</Text>
+            </View>
+          </View>
+
+
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -119,7 +162,7 @@ const getStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.primary,
     borderRadius: theme.borderRadius.xl,
     padding: theme.spacing.l,
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.l,
     shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
@@ -220,4 +263,41 @@ const getStyles = (theme: any) => StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  footer: {
+    paddingVertical: theme.spacing.xl,
+    marginTop: theme.spacing.l,
+    alignItems: 'stretch',
+  },
+  hashtagContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.m,
+  },
+  largeHashtag: {
+    color: theme.colors.textSecondary,
+    fontSize: 54,
+    fontWeight: '900',
+    fontStyle: 'italic',
+    opacity: 0.15,
+    letterSpacing: -2,
+    marginLeft: -4,
+  },
+  footerContent: {
+    paddingLeft: 4,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  footerEmoji: {
+    fontSize: 16,
+    marginRight: 8,
+  },
+  footerSubText: {
+    color: theme.colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
 });
