@@ -15,7 +15,7 @@ export const AddTransactionScreen = () => {
   const dispatch = useDispatch();
 
   const editItem: Transaction | undefined = route.params?.editItem;
-  
+
   const [amount, setAmount] = useState(editItem ? editItem.amount.toString() : '');
   const [category, setCategory] = useState(editItem ? editItem.category : '');
   const [note, setNote] = useState(editItem?.note ? editItem.note : '');
@@ -69,9 +69,9 @@ export const AddTransactionScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {/* Custom Header */}
         <View style={styles.header}>
@@ -79,21 +79,25 @@ export const AddTransactionScreen = () => {
             <Icon name="close" size={28} color={theme.colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{editItem ? 'Edit Transaction' : 'New Transaction'}</Text>
-          <TouchableOpacity onPress={handleSave} style={styles.iconButton}>
-            <Icon name="checkmark" size={28} color={theme.colors.primary} />
-          </TouchableOpacity>
+          {editItem ? (
+            <TouchableOpacity onPress={handleSave} style={styles.iconButton}>
+              <Icon name="checkmark" size={28} color={theme.colors.primary} />
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: 28, padding: theme.spacing.xs }} />
+          )}
         </View>
 
         <ScrollView style={styles.content}>
           {/* Type Selector */}
           <View style={styles.typeSelector}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.typeButton, type === 'expense' && styles.typeButtonExpenseActive]}
               onPress={() => setType('expense')}
             >
               <Text style={[styles.typeButtonText, type === 'expense' && styles.typeButtonTextActive]}>Expense</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.typeButton, type === 'income' && styles.typeButtonIncomeActive]}
               onPress={() => setType('income')}
             >
@@ -130,7 +134,7 @@ export const AddTransactionScreen = () => {
               placeholder="e.g. Groceries, Salary"
               placeholderTextColor={theme.colors.textSecondary}
             />
-            
+
             {/* Quick Picks */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickPicksContainer}>
               {currentCategories.map((cat, index) => (
@@ -166,6 +170,22 @@ export const AddTransactionScreen = () => {
           </View>
 
         </ScrollView>
+        
+        {/* Fixed Footer for Confirm Button (Only for New Transactions) */}
+        {!editItem && (
+          <View style={styles.footer}>
+            <TouchableOpacity 
+              style={[
+                styles.confirmButton, 
+                (!amount || !category) && styles.confirmButtonDisabled
+              ]} 
+              onPress={handleSave}
+              disabled={!amount || !category}
+            >
+              <Text style={styles.confirmButtonText}>Confirm Transaction</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -284,5 +304,25 @@ const getStyles = (theme: any) => StyleSheet.create({
   quickPickText: {
     color: theme.colors.textSecondary,
     fontSize: 14,
+  },
+  footer: {
+    padding: theme.spacing.m,
+    backgroundColor: theme.colors.background,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+  },
+  confirmButton: {
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.m,
+    borderRadius: theme.borderRadius.m,
+    alignItems: 'center',
+  },
+  confirmButtonDisabled: {
+    backgroundColor: theme.colors.border,
+  },
+  confirmButtonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

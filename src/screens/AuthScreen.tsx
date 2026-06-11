@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, Dimensions, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
+import ReactNativeBiometrics from 'react-native-biometrics';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, resetAuth } from '../store/slices/authSlice';
 import { RootState } from '../store/store';
@@ -18,6 +19,12 @@ export const AuthScreen = () => {
   const [error, setError] = useState('');
   const [showResetModal, setShowResetModal] = useState(false);
 
+  useEffect(() => {
+    if (pin.length === 4) {
+      handleLogin();
+    }
+  }, [pin]);
+
   const handleLogin = () => {
     if (pin === storedPin) {
       setError('');
@@ -28,6 +35,26 @@ export const AuthScreen = () => {
     }
   };
 
+  const handleBiometricLogin = async () => {
+    const rnBiometrics = new ReactNativeBiometrics();
+    try {
+      const { success } = await rnBiometrics.simplePrompt({ promptMessage: 'Authenticate to access SafeWallet' });
+      if (success) {
+        dispatch(login());
+      } else {
+        // Just cancel quietly or show a toast if preferred
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Biometric authentication failed.');
+    }
+  };
+
+  useEffect(() => {
+    if (biometricEnabled) {
+      handleBiometricLogin();
+    }
+  }, []);
+
   const handleForgotPin = () => {
     setShowResetModal(true);
   };
@@ -35,6 +62,18 @@ export const AuthScreen = () => {
   const confirmReset = () => {
     setShowResetModal(false);
     dispatch(resetAuth());
+  };
+
+  const handleNumpadPress = (num: string) => {
+    if (pin.length < 4) {
+      setPin(prev => prev + num);
+      setError('');
+    }
+  };
+
+  const handleBackspace = () => {
+    setPin(prev => prev.slice(0, -1));
+    setError('');
   };
 
   return (
@@ -46,36 +85,45 @@ export const AuthScreen = () => {
         <Text style={styles.title}>SafeWallet</Text>
         <Text style={styles.subtitle}>Enter your PIN to access your wallet</Text>
 
-        <TextInput
-          style={[styles.pinInput, error ? styles.pinInputError : null]}
-          keyboardType="number-pad"
-          secureTextEntry
-          maxLength={4}
-          value={pin}
-          onChangeText={(text) => {
-            setPin(text);
-            setError('');
-          }}
-          placeholder="* * * *"
-          placeholderTextColor={theme.colors.textSecondary}
-        />
+        {/* Custom PIN Dots */}
+        <View style={styles.pinDotsContainer}>
+          {[0, 1, 2, 3].map(i => (
+            <View 
+              key={i} 
+              style={[
+                styles.pinDot, 
+                pin.length > i && styles.pinDotFilled,
+                error ? styles.pinDotError : null
+              ]} 
+            />
+          ))}
+        </View>
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error ? error : ''}</Text>
+        </View>
 
-        <TouchableOpacity 
-          style={[styles.loginBtn, pin.length < 4 && styles.loginBtnDisabled]} 
-          onPress={handleLogin}
-          disabled={pin.length < 4}
-        >
-          <Text style={styles.loginBtnText}>Unlock</Text>
-        </TouchableOpacity>
-
-        {biometricEnabled && (
-          <TouchableOpacity style={styles.biometricBtn} onPress={() => dispatch(login())}>
-            <Icon name="finger-print" size={32} color={theme.colors.primary} />
-            <Text style={styles.biometricText}>Use Biometrics</Text>
+        {/* Custom Numpad */}
+        <View style={styles.numpadContainer}>
+          {['1','2','3','4','5','6','7','8','9'].map(num => (
+            <TouchableOpacity key={num} style={styles.numpadBtn} onPress={() => handleNumpadPress(num)}>
+              <Text style={styles.numpadText}>{num}</Text>
+            </TouchableOpacity>
+          ))}
+          {biometricEnabled ? (
+            <TouchableOpacity style={styles.numpadBtn} onPress={handleBiometricLogin}>
+              <Icon name="finger-print" size={32} color={theme.colors.primary} />
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.numpadBtn} />
+          )}
+          <TouchableOpacity style={styles.numpadBtn} onPress={() => handleNumpadPress('0')}>
+            <Text style={styles.numpadText}>0</Text>
           </TouchableOpacity>
-        )}
+          <TouchableOpacity style={styles.numpadBtn} onPress={handleBackspace}>
+            <Icon name="backspace-outline" size={32} color={theme.colors.text} />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.forgotBtn} onPress={handleForgotPin}>
           <Text style={styles.forgotText}>Forgot PIN?</Text>
@@ -127,47 +175,61 @@ const getStyles = (theme: any) => StyleSheet.create({
   },
   title: { color: theme.colors.text, fontSize: 32, fontWeight: 'bold', marginBottom: theme.spacing.s },
   subtitle: { color: theme.colors.textSecondary, fontSize: 16, marginBottom: theme.spacing.xxl, textAlign: 'center' },
-  pinInput: {
-    backgroundColor: theme.colors.surface,
-    color: theme.colors.text,
-    fontSize: 24,
-    letterSpacing: 8,
-    textAlign: 'center',
-    padding: theme.spacing.m,
-    borderRadius: theme.borderRadius.m,
-    width: '100%',
-    marginBottom: theme.spacing.xl,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  loginBtn: {
-    backgroundColor: theme.colors.primary,
-    width: '100%',
-    padding: theme.spacing.m,
-    borderRadius: theme.borderRadius.m,
+  pinDotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    marginTop: theme.spacing.xl,
+    marginBottom: theme.spacing.l,
   },
-  loginBtnDisabled: {
-    backgroundColor: theme.colors.border,
+  pinDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    backgroundColor: 'transparent',
+    marginHorizontal: 12,
   },
-  loginBtnText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
-  pinInputError: {
+  pinDotFilled: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  pinDotError: {
     borderColor: theme.colors.danger,
-    color: theme.colors.danger,
+    backgroundColor: theme.colors.danger,
+  },
+  errorContainer: {
+    height: 24,
+    justifyContent: 'center',
+    marginBottom: theme.spacing.l,
   },
   errorText: {
     color: theme.colors.danger,
-    marginBottom: theme.spacing.l,
-    marginTop: -theme.spacing.m,
+    fontWeight: '500',
+    textAlign: 'center',
   },
-  biometricBtn: {
-    marginTop: theme.spacing.xl,
+  numpadContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  biometricText: {
-    color: theme.colors.primary,
+    width: 280,
     marginTop: theme.spacing.s,
-    fontWeight: '600',
+  },
+  numpadBtn: {
+    width: 80,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 6,
+    borderRadius: 40,
+    backgroundColor: theme.colors.surface,
+  },
+  numpadText: {
+    fontSize: 28,
+    fontWeight: '500',
+    color: theme.colors.text,
   },
   forgotBtn: {
     marginTop: theme.spacing.xl,

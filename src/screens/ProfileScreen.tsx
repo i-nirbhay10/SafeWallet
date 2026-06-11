@@ -41,8 +41,8 @@ export const ProfileScreen = () => {
             { id: 3, title: 'Security', icon: 'lock-closed-outline', color: theme.colors.danger, route: 'Security' },
             { id: 4, title: 'Help & Support', icon: 'help-circle-outline', color: theme.colors.textSecondary, route: 'HelpSupport' },
           ].map(item => (
-            <TouchableOpacity 
-              key={item.id} 
+            <TouchableOpacity
+              key={item.id}
               style={styles.menuItem}
               onPress={() => navigation.navigate(item.route)}
             >

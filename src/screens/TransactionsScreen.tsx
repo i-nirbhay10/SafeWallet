@@ -21,6 +21,18 @@ export const TransactionsScreen = () => {
 
   const filteredTransactions = transactions.filter(t => filter === 'all' || t.type === filter);
 
+  const filteredIncome = filteredTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+  const filteredExpense = filteredTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+
+  const groupedTransactions = filteredTransactions.reduce((acc, current) => {
+    const dateStr = current.date || 'Unknown Date';
+    if (!acc[dateStr]) {
+      acc[dateStr] = [];
+    }
+    acc[dateStr].push(current);
+    return acc;
+  }, {} as Record<string, Transaction[]>);
+
   const handleDelete = () => {
     if (selectedTransaction) {
       dispatch(deleteTransaction(selectedTransaction.id));
@@ -45,41 +57,75 @@ export const TransactionsScreen = () => {
         <View style={{ width: 24 }} />
       </View>
 
-      <View style={styles.filterContainer}>
-        {['all', 'income', 'expense'].map((f) => (
-          <TouchableOpacity 
-            key={f} 
-            style={[styles.filterPill, filter === f && { backgroundColor: theme.colors.primary }]}
-            onPress={() => setFilter(f as any)}
-          >
-            <Text style={[styles.filterText, filter === f && { color: '#FFF' }]}>
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      <View>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.filterContainer}
+        >
+          {['all', 'income', 'expense'].map((f) => (
+            <TouchableOpacity 
+              key={f} 
+              style={[styles.filterPill, filter === f && { backgroundColor: theme.colors.primary }]}
+              onPress={() => setFilter(f as any)}
+            >
+              <Text style={[styles.filterText, filter === f && { color: '#FFF' }]}>
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
-      <ScrollView style={styles.content}>
-        {filteredTransactions.map((item) => (
-          <TouchableOpacity 
-            key={item.id} 
-            style={styles.transactionItem}
-            onLongPress={() => setSelectedTransaction(item)}
-            delayLongPress={400}
-          >
-            <View style={styles.transactionIconBox}>
-              <Icon name={item.icon || 'cash'} size={24} color={item.type === 'income' ? theme.colors.secondary : theme.colors.danger} />
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Summary Card */}
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryItem}>
+            <View style={[styles.summaryIcon, { backgroundColor: theme.colors.secondary + '20' }]}>
+              <Icon name="arrow-down" size={16} color={theme.colors.secondary} />
             </View>
-            <View style={styles.transactionDetails}>
-              <Text style={styles.transactionTitle}>{item.title}</Text>
-              <Text style={styles.transactionDate}>{item.date}</Text>
+            <View>
+              <Text style={styles.summaryLabel}>Income</Text>
+              <Text style={styles.summaryValue}>₹{filteredIncome.toLocaleString('en-IN')}</Text>
             </View>
-            <View style={styles.transactionRight}>
-              <Text style={[styles.transactionAmount, { color: item.type === 'income' ? theme.colors.secondary : theme.colors.text }]}>
-                {item.type === 'income' ? '+' : '-'}₹{item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </Text>
+          </View>
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryItem}>
+            <View style={[styles.summaryIcon, { backgroundColor: theme.colors.danger + '20' }]}>
+              <Icon name="arrow-up" size={16} color={theme.colors.danger} />
             </View>
-          </TouchableOpacity>
+            <View>
+              <Text style={styles.summaryLabel}>Expense</Text>
+              <Text style={styles.summaryValue}>₹{filteredExpense.toLocaleString('en-IN')}</Text>
+            </View>
+          </View>
+        </View>
+
+        {Object.keys(groupedTransactions).map((date) => (
+          <View key={date} style={styles.dateGroup}>
+            <Text style={styles.dateHeader}>{date}</Text>
+            {groupedTransactions[date].map((item) => (
+              <TouchableOpacity 
+                key={item.id} 
+                style={styles.transactionItem}
+                onLongPress={() => setSelectedTransaction(item)}
+                delayLongPress={400}
+              >
+                <View style={styles.transactionIconBox}>
+                  <Icon name={item.icon || 'cash'} size={24} color={item.type === 'income' ? theme.colors.secondary : theme.colors.danger} />
+                </View>
+                <View style={styles.transactionDetails}>
+                  <Text style={styles.transactionTitle}>{item.title}</Text>
+                  <Text style={styles.transactionCategory}>{item.category}</Text>
+                </View>
+                <View style={styles.transactionRight}>
+                  <Text style={[styles.transactionAmount, { color: item.type === 'income' ? theme.colors.secondary : theme.colors.text }]}>
+                    {item.type === 'income' ? '+' : '-'}₹{item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         ))}
         {filteredTransactions.length === 0 && (
           <EmptyState 
@@ -163,9 +209,51 @@ const getStyles = (theme: any) => StyleSheet.create({
   },
   transactionDetails: { flex: 1 },
   transactionTitle: { color: theme.colors.text, fontSize: 16, fontWeight: '500', marginBottom: 4 },
-  transactionDate: { color: theme.colors.textSecondary, fontSize: 12 },
+  transactionCategory: { color: theme.colors.textSecondary, fontSize: 13 },
   transactionRight: { alignItems: 'flex-end', justifyContent: 'center' },
-  transactionAmount: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  transactionAmount: { fontSize: 16, fontWeight: 'bold' },
+  summaryCard: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.l,
+    padding: theme.spacing.m,
+    marginBottom: theme.spacing.l,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  summaryIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: theme.spacing.s,
+  },
+  summaryLabel: { color: theme.colors.textSecondary, fontSize: 12, marginBottom: 2 },
+  summaryValue: { color: theme.colors.text, fontSize: 16, fontWeight: 'bold' },
+  summaryDivider: {
+    width: 1,
+    height: '100%',
+    backgroundColor: theme.colors.border,
+    marginHorizontal: theme.spacing.m,
+  },
+  dateGroup: {
+    marginBottom: theme.spacing.m,
+  },
+  dateHeader: {
+    color: theme.colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: theme.spacing.s,
+    marginLeft: theme.spacing.xs,
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',

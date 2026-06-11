@@ -1,5 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import SpInAppUpdates, {
+  IAUUpdateKind,
+  StartUpdateOptions,
+} from 'sp-react-native-in-app-updates';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -44,6 +49,22 @@ export const AppNavigator = () => {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
 
+  useEffect(() => {
+    const inAppUpdates = new SpInAppUpdates(false);
+    
+    inAppUpdates.checkNeedsUpdate().then((result) => {
+      if (result.shouldUpdate) {
+        let updateOptions: StartUpdateOptions = {};
+        if (Platform.OS === 'android') {
+          updateOptions = {
+            updateType: IAUUpdateKind.FLEXIBLE,
+          };
+        }
+        inAppUpdates.startUpdate(updateOptions);
+      }
+    }).catch(err => console.log('In-App Update Error:', err));
+  }, []);
+
   return (
     <NavigationContainer>
       <Tab.Navigator
@@ -63,7 +84,7 @@ export const AppNavigator = () => {
 
             if (route.name === 'Home') {
               iconName = focused ? 'home' : 'home-outline';
-            } else if (route.name === 'Add') {
+            } else if (route.name === 'Transact') {
               iconName = focused ? 'add-circle' : 'add-circle-outline';
             } else if (route.name === 'Insights') {
               iconName = focused ? 'pie-chart' : 'pie-chart-outline';
@@ -77,7 +98,7 @@ export const AppNavigator = () => {
       >
         <Tab.Screen name="Home" component={HomeStackScreen} />
         <Tab.Screen name="Insights" component={InsightsScreen} />
-        <Tab.Screen name="Add" component={AddTransactionScreen} />
+        <Tab.Screen name="Transact" component={AddTransactionScreen} />
         <Tab.Screen name="Profile" component={ProfileStackScreen} />
       </Tab.Navigator>
     </NavigationContainer>

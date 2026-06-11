@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Modal, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ReactNativeBiometrics from 'react-native-biometrics';
 import { useTheme } from '../theme/ThemeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -27,6 +28,26 @@ export const SecurityScreen = () => {
     }
   };
 
+  const handleToggleBiometrics = async (val: boolean) => {
+    if (val) {
+      try {
+        const rnBiometrics = new ReactNativeBiometrics();
+        const { available } = await rnBiometrics.isSensorAvailable();
+        if (available) {
+          dispatch(toggleBiometric(true));
+        } else {
+          Alert.alert('Not Available', 'Biometrics are not set up or available on this device.');
+          dispatch(toggleBiometric(false));
+        }
+      } catch (error) {
+        Alert.alert('Error', 'Could not access biometric sensors.');
+        dispatch(toggleBiometric(false));
+      }
+    } else {
+      dispatch(toggleBiometric(false));
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -46,7 +67,7 @@ export const SecurityScreen = () => {
             </View>
             <Switch 
               value={biometricEnabled} 
-              onValueChange={(val) => { dispatch(toggleBiometric(val)); }} 
+              onValueChange={handleToggleBiometrics} 
               trackColor={{ true: theme.colors.primary }} 
             />
           </View>
