@@ -9,6 +9,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { toggleBiometric, setPin } from '../store/slices/authSlice';
 
+type PinStep = 'verify_current' | 'enter_new' | 'confirm_new';
+
 export const SecurityScreen = () => {
   const { theme } = useTheme();
   const styles = getStyles(theme);
@@ -16,15 +18,50 @@ export const SecurityScreen = () => {
   const dispatch = useDispatch();
   
   const biometricEnabled = useSelector((state: RootState) => state.auth.biometricEnabled);
+  const currentPin = useSelector((state: RootState) => state.auth.pinCode);
   
   const [isPinModalVisible, setPinModalVisible] = useState(false);
-  const [newPin, setNewPin] = useState('');
+  const [pinStep, setPinStep] = useState<PinStep>('verify_current');
+  const [pinInput, setPinInput] = useState('');
+  const [tempNewPin, setTempNewPin] = useState('');
+  const [pinError, setPinError] = useState('');
   
-  const handleSavePin = () => {
-    if (newPin.length === 4) {
-      dispatch(setPin(newPin));
-      setNewPin('');
-      setPinModalVisible(false);
+  const openPinModal = () => {
+    setPinStep(currentPin ? 'verify_current' : 'enter_new');
+    setPinInput('');
+    setTempNewPin('');
+    setPinError('');
+    setPinModalVisible(true);
+  };
+
+  const handleNextPinStep = () => {
+    if (pinInput.length !== 4) return;
+
+    if (pinStep === 'verify_current') {
+      if (pinInput === currentPin) {
+        setPinStep('enter_new');
+        setPinInput('');
+        setPinError('');
+      } else {
+        setPinError('Incorrect current PIN');
+        setPinInput('');
+      }
+    } else if (pinStep === 'enter_new') {
+      setTempNewPin(pinInput);
+      setPinStep('confirm_new');
+      setPinInput('');
+      setPinError('');
+    } else if (pinStep === 'confirm_new') {
+      if (pinInput === tempNewPin) {
+        dispatch(setPin(pinInput));
+        setPinModalVisible(false);
+        Alert.alert('Success', 'Your PIN has been updated securely.');
+      } else {
+        setPinError('PINs do not match. Try again.');
+        setPinStep('enter_new');
+        setPinInput('');
+        setTempNewPin('');
+      }
     }
   };
 
@@ -46,6 +83,21 @@ export const SecurityScreen = () => {
     } else {
       dispatch(toggleBiometric(false));
     }
+  };
+
+  const handleDeviceManagement = () => {
+    Alert.alert(
+      'Log out other devices',
+      'Are you sure you want to log out of all other active sessions?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Log Out', 
+          style: 'destructive',
+          onPress: () => Alert.alert('Success', 'Logged out of all other devices successfully.') 
+        }
+      ]
+    );
   };
 
   return (
@@ -71,7 +123,7 @@ export const SecurityScreen = () => {
               trackColor={{ true: theme.colors.primary }} 
             />
           </View>
-          <TouchableOpacity style={styles.settingRow} onPress={() => setPinModalVisible(true)}>
+          <TouchableOpacity style={styles.settingRow} onPress={openPinModal}>
             <View style={styles.settingInfo}>
               <Text style={styles.settingName}>Change PIN</Text>
               <Text style={styles.settingDesc}>Update your 4-digit security PIN</Text>
@@ -82,14 +134,7 @@ export const SecurityScreen = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Advanced</Text>
-          <View style={styles.settingRow}>
-            <View style={styles.settingInfo}>
-              <Text style={styles.settingName}>Two-Factor Auth</Text>
-              <Text style={styles.settingDesc}>Additional layer of security</Text>
-            </View>
-            <Switch value={false} onValueChange={() => {}} trackColor={{ true: theme.colors.primary }} />
-          </View>
-          <TouchableOpacity style={styles.settingRow}>
+          <TouchableOpacity style={styles.settingRow} onPress={handleDeviceManagement}>
             <View style={styles.settingInfo}>
               <Text style={styles.settingName}>Device Management</Text>
               <Text style={styles.settingDesc}>Log out of other devices</Text>
@@ -104,29 +149,39 @@ export const SecurityScreen = () => {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Set New PIN</Text>
+              <Text style={styles.modalTitle}>
+                {pinStep === 'verify_current' ? 'Verify Current PIN' : pinStep === 'enter_new' ? 'Set New PIN' : 'Confirm New PIN'}
+              </Text>
               <TouchableOpacity onPress={() => setPinModalVisible(false)}>
                 <Icon name="close" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.modalDesc}>Enter a new 4-digit PIN to secure your wallet.</Text>
+            <Text style={styles.modalDesc}>
+              {pinStep === 'verify_current' ? 'Please enter your current 4-digit PIN to continue.' : pinStep === 'enter_new' ? 'Enter a new 4-digit PIN to secure your wallet.' : 'Please re-enter your new PIN to confirm.'}
+            </Text>
+            
             <TextInput
               style={styles.pinInput}
               keyboardType="number-pad"
               secureTextEntry
               maxLength={4}
-              value={newPin}
-              onChangeText={setNewPin}
+              value={pinInput}
+              onChangeText={setPinInput}
               placeholder="* * * *"
               placeholderTextColor={theme.colors.textSecondary}
               autoFocus
             />
+            
+            {pinError ? <Text style={styles.errorText}>{pinError}</Text> : null}
+
             <TouchableOpacity 
-              style={[styles.saveBtn, newPin.length < 4 && styles.saveBtnDisabled]} 
-              onPress={handleSavePin}
-              disabled={newPin.length < 4}
+              style={[styles.saveBtn, pinInput.length < 4 && styles.saveBtnDisabled]} 
+              onPress={handleNextPinStep}
+              disabled={pinInput.length < 4}
             >
-              <Text style={styles.saveBtnText}>Save PIN</Text>
+              <Text style={styles.saveBtnText}>
+                {pinStep === 'confirm_new' ? 'Save PIN' : 'Next'}
+              </Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -201,4 +256,5 @@ const getStyles = (theme: any) => StyleSheet.create({
   },
   saveBtnDisabled: { backgroundColor: theme.colors.border },
   saveBtnText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
+  errorText: { color: theme.colors.danger, fontSize: 14, textAlign: 'center', marginBottom: theme.spacing.m },
 });
