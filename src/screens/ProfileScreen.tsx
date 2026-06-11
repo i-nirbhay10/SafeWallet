@@ -1,11 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Linking, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
+import SpInAppUpdates, { IAUUpdateKind, StartUpdateOptions } from 'sp-react-native-in-app-updates';
+import DeviceInfo from 'react-native-device-info';
+import { RootState } from '../store/store';
+import { EditProfileModal } from '../components/EditProfileModal';
 
 export const ProfileScreen = () => {
   const { theme, isDark, toggleTheme } = useTheme();
@@ -13,9 +17,68 @@ export const ProfileScreen = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
 
+  const { userName, userEmail } = useSelector((state: RootState) => state.auth);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+
+  const handleShare = async () => {
+    const bundleId = DeviceInfo.getBundleId();
+    const androidLink = `https://play.google.com/store/apps/details?id=${bundleId}`;
+
+    try {
+      await Share.share({
+        message: `Check out SafeWallet - The best app to track your expenses and manage your money securely! Download it now:\n\n${androidLink}`,
+        url: androidLink,
+        title: 'Download SafeWallet',
+      });
+    } catch (error: any) {
+      Alert.alert('Error', error.message);
+    }
+  };
+
+  const handleRateUs = () => {
+    const bundleId = DeviceInfo.getBundleId();
+    const url = `market://details?id=${bundleId}`;
+    Linking.canOpenURL(url).then(supported => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        Alert.alert('Error', 'Unable to open app store.');
+      }
+    });
+  };
+
+  const handleCheckUpdate = () => {
+    const inAppUpdates = new SpInAppUpdates(false);
+    inAppUpdates.checkNeedsUpdate().then((result) => {
+      if (result.shouldUpdate) {
+        let updateOptions: StartUpdateOptions = {};
+        if (Platform.OS === 'android') {
+          updateOptions = {
+            updateType: IAUUpdateKind.FLEXIBLE,
+          };
+        }
+        inAppUpdates.startUpdate(updateOptions);
+      } else {
+        Alert.alert('Up to date', 'You are already on the latest version of SafeWallet.');
+      }
+    }).catch(err => {
+      console.log('In-App Update Error:', err);
+      Alert.alert('Error', 'Could not check for updates at this time.');
+    });
+  };
+
+  const menuItems = [
+    { id: 1, title: 'My Wallet', icon: 'wallet-outline', color: theme.colors.primary, route: 'MyWallet' },
+    { id: 2, title: 'Notifications', icon: 'notifications-outline', color: theme.colors.secondary, route: 'Notifications' },
+    { id: 3, title: 'Security', icon: 'lock-closed-outline', color: theme.colors.danger, route: 'Security' },
+    { id: 4, title: 'Help & Support', icon: 'help-circle-outline', color: theme.colors.textSecondary, route: 'HelpSupport' },
+    { id: 5, title: 'Rate Us', icon: 'star-outline', color: '#FFD700', action: handleRateUs },
+    { id: 6, title: 'Share App', icon: 'share-social-outline', color: '#1DA1F2', action: handleShare },
+    { id: 7, title: 'Check for Updates', icon: 'refresh-outline', color: '#34A853', action: handleCheckUpdate },
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
         <TouchableOpacity onPress={toggleTheme}>
@@ -24,27 +87,29 @@ export const ProfileScreen = () => {
       </View>
 
       <ScrollView style={styles.content}>
-        {/* User Info */}
         <View style={styles.userInfoSection}>
           <View style={styles.avatarPlaceholder}>
             <Icon name="person" size={40} color={theme.colors.textSecondary} />
           </View>
-          <Text style={styles.userName}>Nirbhay</Text>
-          <Text style={styles.userEmail}>nirbhay@example.com</Text>
+          <Text style={styles.userName}>{userName}</Text>
+          <Text style={styles.userEmail}>{userEmail}</Text>
+          <TouchableOpacity style={styles.editProfileBtn} onPress={() => setIsEditModalVisible(true)}>
+            <Text style={styles.editProfileText}>Edit Profile</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Menu Items */}
         <View style={styles.menuSection}>
-          {[
-            { id: 1, title: 'My Wallet', icon: 'wallet-outline', color: theme.colors.primary, route: 'MyWallet' },
-            { id: 2, title: 'Notifications', icon: 'notifications-outline', color: theme.colors.secondary, route: 'Notifications' },
-            { id: 3, title: 'Security', icon: 'lock-closed-outline', color: theme.colors.danger, route: 'Security' },
-            { id: 4, title: 'Help & Support', icon: 'help-circle-outline', color: theme.colors.textSecondary, route: 'HelpSupport' },
-          ].map(item => (
+          {menuItems.map(item => (
             <TouchableOpacity
               key={item.id}
               style={styles.menuItem}
-              onPress={() => navigation.navigate(item.route)}
+              onPress={() => {
+                if (item.action) {
+                  item.action();
+                } else if (item.route) {
+                  navigation.navigate(item.route);
+                }
+              }}
             >
               <View style={[styles.menuIcon, { backgroundColor: item.color + '20' }]}>
                 <Icon name={item.icon} size={20} color={item.color} />
@@ -60,6 +125,13 @@ export const ProfileScreen = () => {
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <EditProfileModal
+        visible={isEditModalVisible}
+        onClose={() => setIsEditModalVisible(false)}
+        initialName={userName}
+        initialEmail={userEmail}
+      />
     </SafeAreaView>
   );
 };
@@ -153,5 +225,17 @@ const getStyles = (theme: any) => StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: theme.spacing.s,
+  },
+  editProfileBtn: {
+    marginTop: theme.spacing.m,
+    paddingVertical: theme.spacing.s,
+    paddingHorizontal: theme.spacing.l,
+    borderRadius: theme.borderRadius.m,
+    backgroundColor: theme.colors.primary + '20',
+  },
+  editProfileText: {
+    color: theme.colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -10,6 +10,26 @@ export const MyWalletScreen = () => {
   const { theme } = useTheme();
   const styles = getStyles(theme);
   const navigation = useNavigation();
+
+  const [cards, setCards] = useState([
+    { id: '1', type: 'Visa', number: '**** **** **** 4242', balance: '$2,450.00' }
+  ]);
+
+  const [accounts, setAccounts] = useState([
+    { id: '1', name: 'Main Checking', balance: '$5,240.50', icon: 'business-outline' }
+  ]);
+
+  const handleAddCard = () => {
+    // Mock logic to add a new card
+    const newCard = {
+      id: Date.now().toString(),
+      type: 'Mastercard',
+      number: `**** **** **** ${Math.floor(1000 + Math.random() * 9000)}`,
+      balance: `$${(Math.random() * 5000).toFixed(2)}`
+    };
+    setCards([...cards, newCard]);
+    Alert.alert('Success', 'A new card has been linked successfully!');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -24,7 +44,19 @@ export const MyWalletScreen = () => {
         {/* Connected Cards */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Connected Cards</Text>
-          <TouchableOpacity style={styles.addCardBtn}>
+          {cards.map(card => (
+            <View key={card.id} style={styles.cardItem}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardBrand}>{card.type}</Text>
+                <Icon name={card.type.toLowerCase() === 'visa' ? "logo-venmo" : "card"} size={24} color={theme.colors.text} />
+              </View>
+              <Text style={styles.cardNumber}>{card.number}</Text>
+              <View style={styles.cardFooter}>
+                <Text style={styles.cardBalance}>{card.balance}</Text>
+              </View>
+            </View>
+          ))}
+          <TouchableOpacity style={styles.addCardBtn} onPress={handleAddCard}>
             <Icon name="add" size={20} color={theme.colors.primary} />
             <Text style={styles.addCardText}>Add New Card</Text>
           </TouchableOpacity>
@@ -33,11 +65,26 @@ export const MyWalletScreen = () => {
         {/* Other Wallets */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Accounts</Text>
-          <EmptyState 
-            icon="wallet-outline" 
-            title="No Accounts" 
-            message="You haven't linked any bank accounts or wallets yet." 
-          />
+          {accounts.length > 0 ? (
+            accounts.map(acc => (
+              <View key={acc.id} style={styles.accountRow}>
+                <View style={styles.accountIconBox}>
+                  <Icon name={acc.icon} size={20} color={theme.colors.textSecondary} />
+                </View>
+                <View style={styles.accountInfo}>
+                  <Text style={styles.accountName}>{acc.name}</Text>
+                  <Text style={styles.accountBalance}>{acc.balance}</Text>
+                </View>
+                <Icon name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+              </View>
+            ))
+          ) : (
+            <EmptyState 
+              icon="wallet-outline" 
+              title="No Accounts" 
+              message="You haven't linked any bank accounts or wallets yet." 
+            />
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -72,7 +119,6 @@ const getStyles = (theme: any) => StyleSheet.create({
   cardNumber: { color: theme.colors.textSecondary, fontSize: 18, letterSpacing: 2, marginBottom: theme.spacing.m },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardBalance: { color: theme.colors.text, fontSize: 20, fontWeight: 'bold' },
-  cardExpiry: { color: theme.colors.textSecondary, fontSize: 14 },
   addCardBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -101,7 +147,7 @@ const getStyles = (theme: any) => StyleSheet.create({
     alignItems: 'center',
     marginRight: theme.spacing.m,
   },
-  accountInfo: { flex: 1 },
+  accountInfo: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: theme.spacing.s },
   accountName: { color: theme.colors.text, fontSize: 16, fontWeight: '500' },
   accountBalance: { color: theme.colors.text, fontSize: 16, fontWeight: 'bold' },
 });
