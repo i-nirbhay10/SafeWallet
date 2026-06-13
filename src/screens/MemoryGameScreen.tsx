@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../theme/ThemeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -23,6 +24,7 @@ export const MemoryGameScreen = () => {
   const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
   const [matches, setMatches] = useState(0);
+  const [highestScore, setHighestScore] = useState<number | null>(null);
 
   const initializeGame = () => {
     const deck = [...ICONS, ...ICONS]
@@ -39,7 +41,33 @@ export const MemoryGameScreen = () => {
     setMatches(0);
   };
 
+  const loadHighScore = async () => {
+    try {
+      const score = await AsyncStorage.getItem('@memory_game_high_score');
+      if (score !== null) {
+        setHighestScore(parseInt(score, 10));
+      }
+    } catch (error) {
+      console.log('Error loading high score', error);
+    }
+  };
+
+  const saveHighScore = async (newScore: number) => {
+    try {
+      if (highestScore === null || newScore < highestScore) {
+        await AsyncStorage.setItem('@memory_game_high_score', newScore.toString());
+        setHighestScore(newScore);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.log('Error saving high score', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
+    loadHighScore();
     initializeGame();
   }, []);
 
@@ -73,11 +101,15 @@ export const MemoryGameScreen = () => {
   }, [flippedIndices]);
 
   useEffect(() => {
-    if (matches === ICONS.length) {
-      Alert.alert('Congratulations!', `You won in ${moves} moves!`, [
-        { text: 'Play Again', onPress: initializeGame }
-      ]);
-    }
+    const checkWin = async () => {
+      if (matches > 0 && matches === ICONS.length) {
+        const isNewHigh = await saveHighScore(moves);
+        Alert.alert('Congratulations!', `You won in ${moves} moves!${isNewHigh ? '\n\nNew High Score! 🏆' : ''}`, [
+          { text: 'Play Again', onPress: initializeGame }
+        ]);
+      }
+    };
+    checkWin();
   }, [matches, moves]);
 
   const handleCardPress = (index: number) => {
@@ -107,8 +139,13 @@ export const MemoryGameScreen = () => {
       </View>
 
       <View style={styles.statsContainer}>
-        <Text style={styles.statsText}>Moves: {moves}</Text>
-        <Text style={styles.statsText}>Matches: {matches} / {ICONS.length}</Text>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsText}>Moves: {moves}</Text>
+          <Text style={styles.statsText}>Matches: {matches} / {ICONS.length}</Text>
+        </View>
+        <Text style={[styles.statsText, { marginTop: 8, color: theme.colors.primary, textAlign: 'center' }]}>
+          Highest Score: {highestScore !== null ? `${highestScore} moves` : 'None'}
+        </Text>
       </View>
 
       <View style={styles.board}>
@@ -161,12 +198,15 @@ const getStyles = (theme: any) => StyleSheet.create({
     fontWeight: 'bold',
   },
   statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     width: '100%',
     paddingHorizontal: theme.spacing.xl,
     paddingVertical: theme.spacing.m,
     marginBottom: theme.spacing.m,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   statsText: {
     fontSize: 16,

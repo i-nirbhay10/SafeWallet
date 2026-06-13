@@ -68,13 +68,13 @@ export const ProfileScreen = () => {
   };
 
   const menuItems = [
-    { id: 1, title: 'My Wallet', icon: 'wallet-outline', color: theme.colors.primary, route: 'MyWallet' },
-    { id: 2, title: 'Notifications', icon: 'notifications-outline', color: theme.colors.secondary, route: 'Notifications' },
-    { id: 3, title: 'Security', icon: 'lock-closed-outline', color: theme.colors.danger, route: 'Security' },
-    { id: 4, title: 'Help & Support', icon: 'help-circle-outline', color: theme.colors.textSecondary, route: 'HelpSupport' },
-    { id: 5, title: 'Rate Us', icon: 'star-outline', color: '#FFD700', action: handleRateUs },
-    { id: 6, title: 'Share App', icon: 'share-social-outline', color: '#1DA1F2', action: handleShare },
-    { id: 7, title: 'Check for Updates', icon: 'refresh-outline', color: '#34A853', action: handleCheckUpdate },
+    { id: 2, title: 'Manage Cards', icon: 'card-outline', color: '#8E2DE2', route: 'ManageCards' },
+    { id: 3, title: 'Notifications', icon: 'notifications-outline', color: theme.colors.secondary, route: 'Notifications' },
+    { id: 4, title: 'Security', icon: 'lock-closed-outline', color: theme.colors.danger, route: 'Security' },
+    { id: 5, title: 'Help & Support', icon: 'help-circle-outline', color: theme.colors.textSecondary, route: 'HelpSupport' },
+    { id: 6, title: 'Rate Us', icon: 'star-outline', color: '#FFD700', action: handleRateUs },
+    { id: 7, title: 'Share App', icon: 'share-social-outline', color: '#1DA1F2', action: handleShare },
+    { id: 8, title: 'Check for Updates', icon: 'refresh-outline', color: '#34A853', action: handleCheckUpdate },
   ];
 
   return (

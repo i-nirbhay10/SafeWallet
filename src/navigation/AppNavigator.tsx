@@ -14,10 +14,10 @@ import { TransactionsScreen } from '../screens/TransactionsScreen';
 import { InsightsScreen } from '../screens/InsightsScreen';
 import { AddTransactionScreen } from '../screens/AddTransactionScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
-import { MyWalletScreen } from '../screens/MyWalletScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { SecurityScreen } from '../screens/SecurityScreen';
 import { HelpSupportScreen } from '../screens/HelpSupportScreen';
+import { ManageCardsScreen } from '../screens/ManageCardsScreen';
 import { useTheme } from '../theme/ThemeContext';
 
 import { SendScreen } from '../screens/SendScreen';
@@ -50,10 +50,10 @@ const ProfileStackScreen = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ProfileMain" component={ProfileScreen} />
-      <Stack.Screen name="MyWallet" component={MyWalletScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Security" component={SecurityScreen} />
       <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+      <Stack.Screen name="ManageCards" component={ManageCardsScreen} />
     </Stack.Navigator>
   );
 };
