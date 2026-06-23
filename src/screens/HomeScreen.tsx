@@ -113,10 +113,10 @@ export const HomeScreen = () => {
               <Text style={styles.footerEmoji}>🇮🇳</Text>
               <Text style={styles.footerSubText}>Made for India</Text>
             </View>
-            <View style={styles.footerRow}>
+            {/* <View style={styles.footerRow}>
               <Text style={styles.footerEmoji}>❤️</Text>
               <Text style={styles.footerSubText}>Crafted in Patna</Text>
-            </View>
+            </View> */}
             <View style={styles.footerRow}>
               <Text style={styles.footerEmoji}>🛡️</Text>
               <Text style={styles.footerSubText}>Bank-grade Security</Text>

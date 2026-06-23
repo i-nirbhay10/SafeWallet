@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, DimensionValue } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, DimensionValue, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -81,7 +81,13 @@ export const InsightsScreen = () => {
       {/* Custom Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Insights</Text>
-        <Icon name="calendar-outline" size={24} color={theme.colors.text} />
+        <TouchableOpacity 
+          style={styles.calendarBtn}
+          onPress={() => Alert.alert('Calendar', 'Date range filtering will be available in the next update.')}
+        >
+          <Text style={styles.calendarBtnText}>This Month</Text>
+          <Icon name="calendar-outline" size={20} color={theme.colors.primary} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content}>
@@ -179,6 +185,20 @@ const getStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.text,
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  calendarBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: theme.spacing.s,
+    borderRadius: 20,
+  },
+  calendarBtnText: {
+    color: theme.colors.text,
+    fontSize: 14,
+    marginRight: theme.spacing.s,
+    fontWeight: '500',
   },
   content: {
     flex: 1,

@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 export const QuickActions = () => {
   const { theme } = useTheme();
   const navigation = useNavigation();
-  
+
   const handleAction = (actionId: string, actionLabel: string) => {
     switch (actionId) {
       case 'send':
@@ -22,15 +22,17 @@ export const QuickActions = () => {
       case 'more':
         navigation.navigate('MoreFeatures' as never);
         break;
+      case 'manageCard':
+        (navigation.navigate as any)('Profile', { screen: 'ManageCards' });
+        break;
       default:
         Alert.alert(actionLabel, `This would open the ${actionLabel} screen.`);
     }
   };
 
   const quickActions = [
-    // { id: 'send', icon: 'send', label: 'Send', color: theme.colors.primary },
-    { id: 'receive', icon: 'arrow-down', label: 'Receive', color: theme.colors.secondary },
-    // { id: 'topup', icon: 'add-circle', label: 'Top Up', color: '#10B981' },
+    { id: 'receive', icon: 'qr-code', label: 'Add QR', color: theme.colors.secondary },
+    { id: 'manageCard', icon: 'card', label: 'Cards', color: theme.colors.danger },
     { id: 'more', icon: 'grid', label: 'More', color: theme.colors.textSecondary },
   ];
 
@@ -61,8 +63,8 @@ export const QuickActions = () => {
   return (
     <View style={styles.quickActionsContainer}>
       {quickActions.map(action => (
-        <TouchableOpacity 
-          key={action.id} 
+        <TouchableOpacity
+          key={action.id}
           style={styles.actionButton}
           onPress={() => handleAction(action.id, action.label)}
         >

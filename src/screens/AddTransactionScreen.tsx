@@ -79,13 +79,7 @@ export const AddTransactionScreen = () => {
             <Icon name="close" size={28} color={theme.colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{editItem ? 'Edit Transaction' : 'New Transaction'}</Text>
-          {editItem ? (
-            <TouchableOpacity onPress={handleSave} style={styles.iconButton}>
-              <Icon name="checkmark" size={28} color={theme.colors.primary} />
-            </TouchableOpacity>
-          ) : (
-            <View style={{ width: 28, padding: theme.spacing.xs }} />
-          )}
+          <View style={{ width: 28, padding: theme.spacing.xs }} />
         </View>
 
         <ScrollView style={styles.content}>
@@ -171,21 +165,21 @@ export const AddTransactionScreen = () => {
 
         </ScrollView>
         
-        {/* Fixed Footer for Confirm Button (Only for New Transactions) */}
-        {!editItem && (
-          <View style={styles.footer}>
-            <TouchableOpacity 
-              style={[
-                styles.confirmButton, 
-                (!amount || !category) && styles.confirmButtonDisabled
-              ]} 
-              onPress={handleSave}
-              disabled={!amount || !category}
-            >
-              <Text style={styles.confirmButtonText}>Confirm Transaction</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        {/* Fixed Footer for Confirm Button */}
+        <View style={styles.footer}>
+          <TouchableOpacity 
+            style={[
+              styles.confirmButton, 
+              (!amount || !category) && styles.confirmButtonDisabled
+            ]} 
+            onPress={handleSave}
+            disabled={!amount || !category}
+          >
+            <Text style={styles.confirmButtonText}>
+              {editItem ? 'Update Transaction' : 'Confirm Transaction'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

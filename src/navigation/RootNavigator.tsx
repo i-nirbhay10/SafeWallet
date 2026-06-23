@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { logout } from '../store/slices/authSlice';
@@ -6,13 +7,14 @@ import { AppNavigator } from './AppNavigator';
 import { AuthScreen } from '../screens/AuthScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { SplashScreen } from '../screens/SplashScreen';
-import { View, StyleSheet, Animated } from 'react-native';
+import { View, StyleSheet, Animated, StatusBar } from 'react-native';
 
 export const RootNavigator = () => {
   const [isSplashVisible, setIsSplashVisible] = useState(true);
   const [fadeAnim] = useState(new Animated.Value(1));
   const dispatch = useDispatch();
   const { isAuthenticated, hasCompletedOnboarding } = useSelector((state: RootState) => state.auth);
+  const { isDark, theme } = useTheme();
 
   useEffect(() => {
     // Force user to authenticate every time the app is opened
@@ -40,6 +42,10 @@ export const RootNavigator = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar 
+        barStyle={isDark ? 'light-content' : 'dark-content'} 
+        backgroundColor={theme.colors.background} 
+      />
       {renderContent()}
       
       {isSplashVisible && (
