@@ -116,8 +116,8 @@ export const InsightsScreen = () => {
                 backgroundGradientFrom: theme.colors.surface,
                 backgroundGradientTo: theme.colors.surface,
                 decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(99, 102, 241, ${opacity})`,
-                labelColor: (opacity = 1) => theme.colors.textSecondary,
+                color: () => `rgba(99, 102, 241, 1)`,
+                labelColor: () => theme.colors.textSecondary,
                 style: {
                   borderRadius: 16,
                 },

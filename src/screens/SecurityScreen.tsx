@@ -76,7 +76,7 @@ export const SecurityScreen = () => {
           Alert.alert('Not Available', 'Biometrics are not set up or available on this device.');
           dispatch(toggleBiometric(false));
         }
-      } catch (error) {
+      } catch {
         Alert.alert('Error', 'Could not access biometric sensors.');
         dispatch(toggleBiometric(false));
       }

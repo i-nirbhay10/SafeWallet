@@ -8,7 +8,6 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { EmptyState } from '../components/EmptyState';
 import { QuickActions } from '../components/QuickActions';
-import { AlertBanner } from '../components/AlertBanner';
 
 export const HomeScreen = () => {
   const navigation = useNavigation();

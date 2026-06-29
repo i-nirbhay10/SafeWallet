@@ -6,10 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Modal,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
@@ -43,7 +40,7 @@ export const ManageCardsScreen = () => {
     try {
       const stored = await AsyncStorage.getItem('@payment_cards');
       if (stored) setCards(JSON.parse(stored));
-    } catch (e) {
+    } catch {
       console.log('Failed to load cards');
     }
   };
@@ -52,7 +49,7 @@ export const ManageCardsScreen = () => {
     setCards(newCards);
     try {
       await AsyncStorage.setItem('@payment_cards', JSON.stringify(newCards));
-    } catch (e) {
+    } catch {
       console.log('Failed to save cards');
     }
   };
@@ -103,9 +100,7 @@ export const ManageCardsScreen = () => {
     setVisibleCards(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleCopy = (text: string) => {
-    Alert.alert('Copied', 'Card details copied to clipboard.');
-  };
+
 
   // Filter & Sort
   const displayedCards = useMemo(() => {
