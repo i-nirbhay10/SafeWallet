@@ -1,6 +1,9 @@
 module.exports = {
   root: true,
   extends: '@react-native',
+  env: {
+    jest: true,
+  },
   plugins: ['unused-imports'],
   rules: {
     'no-unused-vars': 'off',
